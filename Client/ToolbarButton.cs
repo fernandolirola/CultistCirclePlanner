@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace CultistCircle.Client;
 
 /// <summary>A copy of the hideout's own left toolbar button with our icon, placed after the last button that is there (other mods add theirs too).</summary>
-internal sealed class ToolbarButton(string name, string resource, Func<bool> when)
+internal sealed class ToolbarButton(string name, Func<bool> when)
 {
     private static readonly AccessTools.FieldRef<HideoutScreenOverlay, ComplementaryButton> Customization = AccessTools.FieldRefAccess<HideoutScreenOverlay, ComplementaryButton>("_customizationButton");
     private static readonly AccessTools.FieldRef<HideoutScreenOverlay, ComplementaryButton> Generator = AccessTools.FieldRefAccess<HideoutScreenOverlay, ComplementaryButton>("_generatorButton");

@@ -2,6 +2,9 @@
 
 ## 1.0.2
 
+- Guard against a missing inventory controller when placing items and a missing circle template when reading grid rules.
+- Remove unused parameters and state, and use one logger field consistently. Client and server now build with zero warnings.
+
 - The hideout toolbar button's blue highlight now follows whether the window is open, so closing the window with Esc or another control clears it too.
 
 ## 1.0.1

@@ -22,7 +22,6 @@ namespace CultistCircle;
 /// <summary>Trader stock and flea offers, searched per item, plus the purchase operations the client sends to buy them.</summary>
 [Injectable(InjectionType.Singleton)]
 public sealed class OfferFinder(
-    ProfileHelper profileHelper,
     TradersTable tradersTable,
     TraderAssortHelper traderAssortHelper,
     TraderPurchasePersisterService purchasePersister,

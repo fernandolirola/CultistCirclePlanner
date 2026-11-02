@@ -165,7 +165,7 @@ public sealed class Circle(
         var deny = new HashSet<MongoId>();
         int max = 0;
         var stash = itemHelper.GetItem(new MongoId("66740c3739b9da6ce402ee65"));
-        if (stash.Key && stash.Value.Properties?.Grids?.FirstOrDefault()?.Properties is { } props)
+        if (stash.Key && stash.Value?.Properties?.Grids?.FirstOrDefault()?.Properties is { } props)
         {
             max = (int)(props.MaxCount ?? 0);
             foreach (var filter in props.Filters ?? [])

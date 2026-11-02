@@ -5,7 +5,6 @@ using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Extensions;
 using SPTarkov.Server.Core.Helpers.Items;
-using SPTarkov.Server.Core.Helpers.Profile;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Enums;
@@ -43,7 +42,7 @@ public sealed class RitualRecord
 /// writes the record once the rewards exist. Both only observe, so a failure here never touches the ritual.
 /// </summary>
 [Injectable(InjectionType.Singleton, TypePriority = OnLoadOrder.PostLoad)]
-public sealed class CircleRecorder(ProfileHelper profileHelper, ItemHelper itemHelper, ISptLogger<CircleRecorder> logger) : IOnLoad
+public sealed class CircleRecorder(ItemHelper itemHelper, ISptLogger<CircleRecorder> logger) : IOnLoad
 {
     private const int Keep = 15;
     private static CircleRecorder? _instance;
@@ -67,7 +66,7 @@ public sealed class CircleRecorder(ProfileHelper profileHelper, ItemHelper itemH
             var start = AccessTools.Method(typeof(CircleOfCultistService), nameof(CircleOfCultistService.StartSacrifice));
             if (roll is null || start is null)
             {
-                logger.Warning("[CultistCircle] Circle history is off: the sacrifice methods were not found");
+                _log.Warning("[CultistCircle] Circle history is off: the sacrifice methods were not found");
                 return Task.CompletedTask;
             }
 
@@ -76,7 +75,7 @@ public sealed class CircleRecorder(ProfileHelper profileHelper, ItemHelper itemH
         }
         catch (Exception ex)
         {
-            logger.Warning($"[CultistCircle] Circle history is off: {ex.Message}");
+            _log.Warning($"[CultistCircle] Circle history is off: {ex.Message}");
         }
 
         return Task.CompletedTask;
@@ -155,7 +154,7 @@ public sealed class CircleRecorder(ProfileHelper profileHelper, ItemHelper itemH
             }
             catch (Exception ex)
             {
-                logger.Warning($"[CultistCircle] Could not save the circle history: {ex.Message}");
+                _log.Warning($"[CultistCircle] Could not save the circle history: {ex.Message}");
             }
         }
     }

@@ -35,7 +35,7 @@ public partial class Plugin : BaseUnityPlugin
 
     public Plugin()
     {
-        _toolbar = new ToolbarButton("CultistCircleButton", "circle.png", CircleUnlocked);
+        _toolbar = new ToolbarButton("CultistCircleButton", CircleUnlocked);
     }
 
     private void Awake()

@@ -104,7 +104,6 @@ public partial class Plugin
 
     private enum CircleView { Optimizer, Recipes, Excluded, Results }
 
-    private bool _circle;
     private CircleView _view;
     private CircleResponse? _cc;
     private int _aim = -1;
@@ -152,7 +151,6 @@ public partial class Plugin
     private async void CircleOpen()
     {
         CircleInit();
-        _circle = true;
         _cc = null;
         _ccStatus = "";
         _ccScroll = Vector2.zero;
@@ -299,7 +297,7 @@ public partial class Plugin
         if (InRaid || _ccBusy || Locked || wanted == null || !Singleton<HideoutRepresentation>.Instantiated) return;
         var controller = Singleton<HideoutRepresentation>.Instance._inventoryController;
         var inventory = controller?.Inventory;
-        if (inventory?.Stash == null || inventory.HideoutAreaStashes == null || !inventory.HideoutAreaStashes.TryGetValue(EAreaType.CircleOfCultists, out var circle))
+        if (controller == null || inventory?.Stash == null || inventory.HideoutAreaStashes == null || !inventory.HideoutAreaStashes.TryGetValue(EAreaType.CircleOfCultists, out var circle))
         {
             _ccStatus = T("Could not find the circle's container", "Não achei o contêiner do círculo");
             return;
