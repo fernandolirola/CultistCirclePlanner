@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- The hideout toolbar button's blue highlight now follows whether the window is open, so closing the window with Esc or another control clears it too.
+
 ## 1.0.1
 
 - The Cultist Circle button now sits with the other hideout buttons when Vertical Hideout is installed, instead of on top of the area list. Thanks to Recker for reporting it and testing the fix.

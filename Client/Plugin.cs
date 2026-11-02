@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace CultistCircle.Client;
 
-[BepInPlugin("com.zezinho.cultistcircleplanner", "zezinho-CultistCirclePlanner", "1.0.1")]
+[BepInPlugin("com.zezinho.cultistcircleplanner", "zezinho-CultistCirclePlanner", "1.0.2")]
 public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log = null!;
@@ -80,7 +80,7 @@ public partial class Plugin : BaseUnityPlugin
 
         if (_overlay != null)
         {
-            _toolbar.Sync(_overlay, () => "Cultist Circle", Toggle);
+            _toolbar.Sync(_overlay, _open, () => "Cultist Circle", Toggle);
         }
 
         if (InHideout && _hotkey.Value.MainKey != KeyCode.None && _hotkey.Value.IsDown() && CircleUnlocked())
