@@ -22,7 +22,7 @@ def p(v):
 
 
 # Shared layout for every zezinho thumbnail: same icon height, title size and gaps, so the set looks alike
-ICON_H, TITLE_CAP, SUB_CAP, GAP, MAX_TEXT_W = 470, 112, 40, 46, 860
+ICON_H, TITLE_CAP, SUB_CAP, GAP, MAX_TEXT_W = 470, 112, 54, 46, 860
 
 
 def _cap_size(path, cap):
@@ -64,7 +64,8 @@ def finish(img, out, title, sub, sub_initials=()):
     # the subtitle keeps its wide spacing when it fits; long ones tighten the spacing first, then shrink
     size = p(_cap_size(FONT_SEMI, SUB_CAP))
     while True:
-        regular, bold = ImageFont.truetype(FONT_SEMI, round(size)), ImageFont.truetype(FONT_BOLD, round(size))
+        # the subtitle is bold too: thinner strokes smear when the Forge shrinks the image to a 192px card
+        regular, bold = ImageFont.truetype(FONT_BOLD, round(size)), ImageFont.truetype(FONT_BOLD, round(size))
         base = CREAM if sub_initials else ORANGE
         parts = [(ch, bold if i in sub_initials else regular, ORANGE if i in sub_initials else base) for i, ch in enumerate(sub)]
         sub_img = None
