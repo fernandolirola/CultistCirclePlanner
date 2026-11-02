@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- The Cultist Circle button now sits with the other hideout buttons when Vertical Hideout is installed, instead of on top of the area list. Thanks to Recker for reporting it and testing the fix.
+
 ## 1.0.0
 
 First release. Split out of zezinho's Shopping List.

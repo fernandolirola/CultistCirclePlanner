@@ -6,7 +6,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>CultistCirclePlanner</AssemblyName>
     <RootNamespace>CultistCircle</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 

@@ -31,8 +31,10 @@ internal sealed class ToolbarButton(string name, string resource, Func<bool> whe
             return;
         }
 
-        // A moment after the overlay shows up, so other mods' buttons exist and ours goes under them
-        if (_seen < 0) _seen = Time.unscaledTime;
+        // Only once the overlay has been shown: mods like Vertical Hideout rearrange its buttons in its Awake, which runs
+        // then. A moment later still, so other mods' buttons exist and ours goes under them
+        if (_seen < 0 && overlay.isActiveAndEnabled) _seen = Time.unscaledTime;
+        if (_seen < 0) return;
         if (_button == null && Time.unscaledTime - _seen < 2f)
         {
             return;
@@ -67,13 +69,19 @@ internal sealed class ToolbarButton(string name, string resource, Func<bool> whe
         copy.name = name;
         _button = copy.GetComponent<ComplementaryButton>();
 
-        // Below the last button that is there, one step further down
-        var buttons = parent.GetComponentsInChildren<ComplementaryButton>(true).Where(b => b != _button && b.transform.parent == parent).ToList();
-        var last = (RectTransform)(buttons.OrderBy(b => b.transform.GetSiblingIndex()).LastOrDefault()?.transform ?? generator.transform);
+        // One step past the furthest button along the row, so Vertical Hideout's bottom row works too. Buttons anchored
+        // elsewhere (ones that mod leaves in place) would mix coordinate spaces, so they are skipped
+        var templateRect = (RectTransform)_template.transform;
+        var step = ((RectTransform)generator.transform).anchoredPosition - templateRect.anchoredPosition;
+        var last = parent.GetComponentsInChildren<ComplementaryButton>(true)
+            .Where(b => b != _button && b.transform.parent == parent)
+            .Select(b => (RectTransform)b.transform)
+            .Where(r => r.anchorMin == templateRect.anchorMin && r.anchorMax == templateRect.anchorMax && r.pivot == templateRect.pivot)
+            .OrderBy(r => Vector2.Dot(r.anchoredPosition, step))
+            .LastOrDefault() ?? (RectTransform)generator.transform;
         var rect = (RectTransform)copy.transform;
         if (parent.GetComponent<LayoutGroup>() == null)
         {
-            var step = ((RectTransform)generator.transform).anchoredPosition - ((RectTransform)_template.transform).anchoredPosition;
             rect.anchoredPosition = last.anchoredPosition + step;
         }
 
