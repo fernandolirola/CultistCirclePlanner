@@ -22,40 +22,28 @@ internal sealed class ToolbarButton(string name, Func<bool> when)
     private bool _failed;
     private float _seen = -1;
 
-    public bool Exists => _button != null;
-
     // Called every frame while the hideout overlay is around; builds the button once, then mirrors the template's visibility
     public void Sync(HideoutScreenOverlay overlay, bool open, Func<string> tooltip, Action onClick)
     {
-        if (_failed)
-        {
-            return;
-        }
+        if (_failed) return;
 
         // Only once the overlay has been shown: mods like Vertical Hideout rearrange its buttons in its Awake, which runs
         // then. A moment later still, so other mods' buttons exist and ours goes under them
         if (_seen < 0 && overlay.isActiveAndEnabled) _seen = Time.unscaledTime;
-        if (_seen < 0) return;
-        if (_button == null && Time.unscaledTime - _seen < 2f)
-        {
-            return;
-        }
+        if (_seen < 0 || _button == null && Time.unscaledTime - _seen < 2f) return;
 
         try
         {
-            if (_button == null)
-            {
-                Create(overlay, tooltip, onClick);
-            }
+            if (_button == null) Create(overlay, tooltip, onClick);
 
-            bool visible = _template != null && _template.gameObject.activeSelf && when();
-            if (_button != null && _button.gameObject.activeSelf != visible)
+            bool visible = _template!.gameObject.activeSelf && when();
+            if (_button!.gameObject.activeSelf != visible)
             {
                 if (visible) Show(tooltip, onClick); else _button.gameObject.SetActive(false);
             }
 
             // Follows the window like the customization button follows its panel, so closing it any other way clears the highlight
-            if (_button != null && _button.gameObject.activeSelf && IsSelected(_button) != open)
+            if (_button.gameObject.activeSelf && IsSelected(_button) != open)
             {
                 _button.SetSelectedStatus(open);
             }

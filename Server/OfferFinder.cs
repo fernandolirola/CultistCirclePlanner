@@ -28,17 +28,15 @@ public sealed class OfferFinder(
     RagfairOfferService ragfairOfferService,
     HandbookHelper handbookHelper,
     PaymentHelper paymentHelper,
-    TraderConfig traderConfig,
-    RagfairConfig ragfairConfig,
     ISptLogger<OfferFinder> logger)
 {
-    internal sealed record Offer(string Source, MongoId Trader, MongoId Id, MongoId Currency, double UnitPrice, double UnitRub, int Available, bool Fir);
+    internal sealed record Offer(string Source, MongoId Trader, MongoId Id, MongoId Currency, double UnitPrice, double UnitRub, int Available);
 
     internal void AddPurchase(PlanResponse response, MongoId tpl, Offer offer, int count)
     {
         long price = (long)Math.Ceiling(offer.UnitPrice * count);
         long rub = (long)Math.Ceiling(offer.UnitRub * count);
-        response.Purchases.Add(new Purchase { Tpl = tpl.ToString(), Count = count, Source = offer.Source, Trader = offer.Trader.ToString(), Currency = offer.Currency.ToString(), Price = price, Rub = rub });
+        response.Purchases.Add(new Purchase { Tpl = tpl.ToString(), Count = count });
         response.Cost[offer.Currency.ToString()] = response.Cost.GetValueOrDefault(offer.Currency.ToString()) + price;
         response.TotalRub += rub;
 
@@ -120,13 +118,13 @@ public sealed class OfferFinder(
                     double unit = pay.Count ?? 0;
                     if (available > 0 && unit > 0)
                     {
-                        result.Add(new Offer("trader", traderId, item.Id, pay.Template, unit, handbookHelper.InRoubles(unit, pay.Template), available, traderConfig.PurchasesAreFoundInRaid));
+                        result.Add(new Offer("trader", traderId, item.Id, pay.Template, unit, handbookHelper.InRoubles(unit, pay.Template), available));
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.Warning($"[ShoppingList] Skipped trader {traderId}: {ex.Message}");
+                logger.Warning($"[CultistCircle] Skipped trader {traderId}: {ex.Message}");
             }
         }
 
@@ -159,8 +157,7 @@ public sealed class OfferFinder(
             double unit = pay.Count ?? 0;
             if (available > 0 && unit > 0)
             {
-                bool fir = offer.IsTraderOffer() ? traderConfig.PurchasesAreFoundInRaid : ragfairConfig.Dynamic.PurchasesAreFoundInRaid;
-                result.Add(new Offer("flea", offer.User.Id, offer.Id, pay.TemplateId, unit, handbookHelper.InRoubles(unit, pay.TemplateId), available, fir));
+                result.Add(new Offer("flea", offer.User.Id, offer.Id, pay.TemplateId, unit, handbookHelper.InRoubles(unit, pay.TemplateId), available));
             }
         }
 

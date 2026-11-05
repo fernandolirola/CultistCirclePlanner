@@ -25,24 +25,13 @@ internal sealed class Ui
     public readonly Texture2D CellBorder = Solid(new Color(1, 1, 1, 0.12f));
     public readonly Texture2D OrangeTex = Solid(Orange);
     public readonly Texture2D OrangeHover = Solid(Color.Lerp(Orange, Color.white, 0.18f));
-    public readonly Texture2D OrangeDim = Solid(new Color(Orange.r, Orange.g, Orange.b, 0.16f));
     public readonly Texture2D Disabled = Solid(new Color(1, 1, 1, 0.08f));
     public readonly Texture2D Hover = Solid(new Color(1, 1, 1, 0.06f));
     public readonly Texture2D Clear = Solid(new Color(0, 0, 0, 0));
-    public readonly Texture2D BlackTex = Solid(new Color(0, 0, 0, 0.8f));
-    // White shapes tinted with GUI.color: IMGUI has no circles of its own. Made at the size they are drawn,
-    // since a big texture squeezed down without mipmaps looks soft
-    public static int DotSize => Mathf.RoundToInt(20 * Scale);
-    public readonly Texture2D Circle = Shape(DotSize, (x, y) => Dist(x, y, 32, 32) <= 32);
-    public readonly Texture2D Ring = Shape(DotSize, (x, y) => Dist(x, y, 32, 32) is <= 32 and >= 27);
-    public readonly Texture2D Lock = Shape(Mathf.RoundToInt(10 * Scale), (x, y) =>
-        // Padlock: a body with a round shackle on top
-        x is >= 12 and <= 52 && y is >= 2 and <= 36 || y >= 36 && Dist(x, y, 32, 36) is >= 12 and <= 20);
 
-    public readonly GUIStyle Brand, Title, Subtitle, Header, Text, Muted, ChipLabel, ChipValue, Pill, Badge, TileName,
-        Center, ButtonText, Tooltip, Plain, Chevron;
+    public readonly GUIStyle Brand, Title, Header, Text, Muted, ChipLabel, ChipValue, Pill, Badge, Center, ButtonText, Tooltip, Plain;
 
-    private readonly System.Collections.Generic.Dictionary<Color, Texture2D> _tints = new();
+    private readonly Dictionary<Color, Texture2D> _tints = new();
 
     public Ui()
     {
@@ -50,7 +39,6 @@ internal sealed class Ui
 
         Brand = Label(Orange, 11, FontStyle.Bold, font);
         Title = Label(Cream, 22, FontStyle.Bold, font);
-        Subtitle = Label(Grey, 15, FontStyle.Normal, font);
         Header = Label(Cream, 15, FontStyle.Bold, font);
         Text = Label(Cream, 14, FontStyle.Normal, font);
         Muted = Label(Grey, 12, FontStyle.Normal, font);
@@ -60,9 +48,6 @@ internal sealed class Ui
         Pill.alignment = TextAnchor.MiddleCenter;
         Badge = Label(new Color(0.07f, 0.07f, 0.07f), 11, FontStyle.Bold, font);
         Badge.alignment = TextAnchor.MiddleCenter;
-        TileName = Label(Cream, 11, FontStyle.Normal, font);
-        TileName.alignment = TextAnchor.UpperCenter;
-        TileName.clipping = TextClipping.Clip;
         Center = Label(Grey, 14, FontStyle.Normal, font);
         Center.alignment = TextAnchor.MiddleCenter;
         Center.wordWrap = true;
@@ -72,9 +57,6 @@ internal sealed class Ui
         Tooltip.wordWrap = true;
         Tooltip.padding = new RectOffset(8, 8, 6, 6);
         Tooltip.normal.background = Solid(new Color(0.02f, 0.02f, 0.02f, 0.97f));
-        // The game font has no arrow glyphs, so the default font draws them
-        Chevron = Label(Grey, 11, FontStyle.Normal, null);
-        Chevron.alignment = TextAnchor.MiddleCenter;
         Plain = new GUIStyle { padding = new RectOffset(0, 0, 0, 0), margin = new RectOffset(0, 0, 0, 0) };
     }
 
@@ -116,13 +98,6 @@ internal sealed class Ui
         }
     }
 
-    public void PillLabel(Rect r, string text, Color color)
-    {
-        GUI.DrawTexture(r, Tint(color, 0.16f));
-        GUI.DrawTexture(new Rect(r.x, r.y, 2, r.height), Tint(color, 0.9f));
-        GUI.Label(r, text, Styled(Pill, color));
-    }
-
     // Outline only, for statuses that inform rather than ask for an action
     public void QuietPill(Rect r, string text, Color color)
     {
@@ -146,7 +121,6 @@ internal sealed class Ui
         Box(box, value ? OrangeTex : Tint(Cream, 0.05f), value ? null : Tint(Cream, 0.35f));
         if (value)
         {
-            // Same drawn check as the level track: the font's glyph sits off-center
             Tinted(new Rect(box.x + 2, box.y + 2, 12, 12), Check, new Color(0.07f, 0.07f, 0.07f));
         }
 
@@ -199,7 +173,7 @@ internal sealed class Ui
         return t;
     }
 
-    public static void Tinted(Rect r, Texture2D shape, Color color)
+    private static void Tinted(Rect r, Texture2D shape, Color color)
     {
         var old = GUI.color;
         GUI.color = new Color(color.r, color.g, color.b, color.a * old.a);

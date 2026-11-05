@@ -44,11 +44,8 @@ public partial class Plugin : BaseUnityPlugin
         _portuguese = Config.Bind("General", "Portuguese", false, "Show the window in Portuguese");
         _hotkey = Config.Bind("General", "Open key", new KeyboardShortcut(KeyCode.None), "Opens the Cultist Circle window in the hideout (none by default: use the circle button in the left toolbar)");
         _scale = Config.Bind("General", "Window scale %", 100, new ConfigDescription("Size of the window. Ctrl + mouse wheel over the window changes it too", new AcceptableValueRange<int>(70, 140)));
-        _hidden = new ConfigurationManagerAttributes { Browsable = false };
         new Harmony("com.zezinho.cultistcircleplanner").PatchAll(typeof(ScrollPatch));
     }
-
-    private ConfigurationManagerAttributes _hidden = null!;
 
     private bool PT => _portuguese.Value;
 
@@ -89,7 +86,7 @@ public partial class Plugin : BaseUnityPlugin
         }
 
         ScrollPatch.Blocked = _open && InHideout;
-        _blocker.Sync(_open && InHideout,new Rect(_window.x * Ui.Scale, _window.y * Ui.Scale, _window.width * Ui.Scale, _window.height * Ui.Scale));
+        _blocker.Sync(_open && InHideout, new Rect(_window.x * Ui.Scale, _window.y * Ui.Scale, _window.width * Ui.Scale, _window.height * Ui.Scale));
     }
 
     private void Toggle()

@@ -86,7 +86,6 @@ public class CircleResponse
     [JsonProperty("maxItems")] public int MaxItems;
     [JsonProperty("tiers")] public List<CircleTier> Tiers = new();
     [JsonProperty("bonusSeconds")] public int BonusSeconds;
-    [JsonProperty("bonusThreshold")] public int BonusThreshold;
     [JsonProperty("bonusChance")] public double BonusChance;
     [JsonProperty("bonusPool")] public List<string> BonusPool = new();
     [JsonProperty("ritual")] public long Ritual = -1;
@@ -128,6 +127,7 @@ public partial class Plugin
     private GUIStyle? _wrap, _field;
     private ConfigEntry<int>? _aimCfg, _safetyCfg;
     private ConfigEntry<bool>? _stashCfg, _safeCfg;
+    private ConfigEntry<string>? _boughtCfg;
 
     private void CircleInit()
     {
@@ -137,11 +137,15 @@ public partial class Plugin
         _safetyCfg = Config.Bind("State", "Circle safety", 1, new ConfigDescription("Safety last picked in the Cultist Circle window", null, hidden));
         _stashCfg = Config.Bind("State", "Circle use stash", false, new ConfigDescription("Use junk from the stash in the Cultist Circle window", null, hidden));
         _safeCfg = Config.Bind("State", "Circle safe offers", true, new ConfigDescription("Ignore flea items with few offers", null, hidden));
+        _boughtCfg = Config.Bind("State", "Circle bought", "", new ConfigDescription("Items bought for the next ritual", null, hidden));
         _aim = _aimCfg.Value;
         _safety = Mathf.Clamp(_safetyCfg.Value, 0, 2);
         _useStash = _stashCfg.Value;
         _safeOffers = _safeCfg.Value;
+        foreach (var tpl in _boughtCfg.Value.Split(',')) if (tpl.Length > 0 && _ccBought.Add(tpl)) _ccResult[tpl] = "bought";
     }
+
+    private void SaveBought() => _boughtCfg!.Value = string.Join(",", _ccBought.ToArray());
 
     // A running ritual (or one with rewards still in the circle) takes no more items, so the window opens on what is happening
     private bool Locked => _cc?.Ritual >= 0;
@@ -155,14 +159,20 @@ public partial class Plugin
         _ccStatus = "";
         _ccScroll = Vector2.zero;
         _ccSkip.Clear();
-        _ccBought.Clear();
-        _ccResult.Clear();
+        // Bought items stay counted until a ritual uses them, so closing the window keeps the progress
+        foreach (var pair in _ccResult.Where(p => p.Value != "bought").ToList()) _ccResult.Remove(pair.Key);
         _pick = 0;
         _ccSel.Clear();
         try
         {
             var status = await CirclePost(new { mode = "status" });
-            if (status?.Ritual >= 0) _view = CircleView.Results;
+            if (status?.Ritual >= 0)
+            {
+                _view = CircleView.Results;
+                _ccBought.Clear();
+                _ccResult.Clear();
+                SaveBought();
+            }
             else if (_view == CircleView.Results) _view = CircleView.Optimizer;
         }
         catch (Exception ex)
@@ -252,16 +262,25 @@ public partial class Plugin
             if (buy == null || buy.Operations.Count == 0) return;
             int ok = 0;
             string? error = null;
-            for (int i = 0; i < buy.Operations.Count && i < buy.Purchases.Count; i++)
+            for (int i = 0; i < buy.Operations.Count; i++)
             {
                 string tpl = buy.Purchases[i].Tpl;
                 _ccResult[tpl] = "...";
+                int before = StashCount(session, tpl);
                 var result = await Send(session, buy.Operations[i]);
+                // A slow reply or a warning can report a failure for a purchase the server did make
+                if (!result.Succeed)
+                {
+                    await System.Threading.Tasks.Task.Delay(1500);
+                    if (StashCount(session, tpl) >= before + buy.Purchases[i].Count) result = new OkResult();
+                }
+
                 if (result.Succeed)
                 {
                     ok++;
                     _ccResult[tpl] = "bought";
                     _ccBought.Add(tpl);
+                    SaveBought();
                 }
                 else
                 {
@@ -288,6 +307,17 @@ public partial class Plugin
         }
 
         if (_view == CircleView.Recipes) CircleRefresh();
+    }
+
+    private static int StashCount(ClientBackendSession session, string tpl) =>
+        session.Profile?.Inventory?.Stash?.GetNotMergedItems().Where(i => i.TemplateId.ToString() == tpl).Sum(i => i.StackObjectsCount) ?? 0;
+
+    private sealed class OkResult : IResult
+    {
+        public string Error => "";
+        public bool Succeed => true;
+        public bool Failed => false;
+        public int ErrorCode => 0;
     }
 
     // Moves items from the stash into the circle the way the game's own quick-move does: the grid's filter and size still apply
@@ -361,7 +391,6 @@ public partial class Plugin
         BuyFail.Space => T("no space", "sem espaço"),
         BuyFail.Gone => T("sold out", "esgotado"),
         BuyFail.Limit => T("limit", "limite"),
-        BuyFail.Price => T("price up", "preço subiu"),
         _ => T("failed", "falhou"),
     };
 

@@ -19,16 +19,14 @@ namespace CultistCircle;
 
 public record CircleRequest : IRequestData
 {
-    // "optimize", "recipes", "buy" (the recipes listed in Recipes), "exclusions", "exclude" or "include" (the item in Tpl)
+    // "status", "optimize", "recipes", "results", "buy" (the recipes listed in Recipes), "exclusions", "exclude" or "include" (the item in Tpl)
     [JsonPropertyName("mode")] public string Mode { get; init; } = "optimize";
     [JsonPropertyName("aim")] public int? Aim { get; init; }
     [JsonPropertyName("safety")] public double Safety { get; init; } = 0.8;
     [JsonPropertyName("recipes")] public List<int>? Recipes { get; init; }
     // Items to leave out, so the optimizer finds the next best combination
     [JsonPropertyName("skip")] public List<string>? Skip { get; init; }
-    // Count junk already in the stash as free
     [JsonPropertyName("useStash")] public bool UseStash { get; init; }
-    // Ignore flea items with few offers and offers far below the rest
     [JsonPropertyName("safeOffers")] public bool SafeOffers { get; init; } = true;
     [JsonPropertyName("tpl")] public string? Tpl { get; init; }
     // Items just bought for this ritual, counted as owned so a retry does not buy them twice
@@ -111,7 +109,6 @@ public record CircleResponse
     [JsonPropertyName("maxItems")] public int MaxItems { get; set; }
     [JsonPropertyName("tiers")] public List<CircleTier> Tiers { get; set; } = [];
     [JsonPropertyName("bonusSeconds")] public int BonusSeconds { get; set; }
-    [JsonPropertyName("bonusThreshold")] public int BonusThreshold { get; set; }
     [JsonPropertyName("bonusChance")] public double BonusChance { get; set; }
     // The bonus reward is picked from what your hideout upgrades and started tasks need
     [JsonPropertyName("bonusPool")] public List<string> BonusPool { get; set; } = [];
@@ -191,7 +188,6 @@ public sealed class Circle(
         _excludedBases = null;
     }
 
-    // What one request works with
     private sealed class Ctx
     {
         public MongoId SessionId;
@@ -218,7 +214,6 @@ public sealed class Circle(
         {
             MaxItems = Math.Max(1, GridRules().max > 0 ? GridRules().max : cfg.MaxRewardItemCount),
             Tiers = tiers,
-            BonusThreshold = cfg.HideoutCraftSacrificeThresholdRub,
             BonusSeconds = cfg.CraftTimeOverride != -1 ? cfg.CraftTimeOverride : cfg.HideoutTaskRewardTimeSeconds,
             Ritual = Ritual(pmc),
         };
@@ -346,7 +341,7 @@ public sealed class Circle(
             return response;
         }
 
-        var cart = new PlanResponse { FleaUnlocked = ctx.Flea };
+        var cart = new PlanResponse();
         var used = new Dictionary<MongoId, int>();
         foreach (int id in request.Recipes ?? [])
         {
@@ -610,7 +605,7 @@ public sealed class Circle(
         double Cost(RitualItem item)
         {
             var tpl = new MongoId(item.Tpl);
-            var cheapest = Offers(ctx, tpl).Where(o => o.Available >= 1).OrderBy(o => o.UnitRub).FirstOrDefault();
+            var cheapest = Offers(ctx, tpl).OrderBy(o => o.UnitRub).FirstOrDefault();
             return cheapest?.UnitRub ?? itemHelper.GetDynamicItemPrice(tpl) ?? item.Handbook;
         }
 
@@ -700,11 +695,11 @@ public sealed class Circle(
             // Free items: owned, not found in raid, not needed by the hideout or a started task, and not carrying parts
             if (have.Contains(tpl) && ctx.Owned.GetValueOrDefault(tpl) >= 1 || useStash && ctx.Owned.GetValueOrDefault(tpl) - ctx.OwnedFir.GetValueOrDefault(tpl) >= 1 && !keep.Contains(tpl) && !ctx.HasChildren.Contains(tpl))
             {
-                result.Add(new Candidate(tpl, (long)handbook, new OfferFinder.Offer("stash", default, default, default, 0, 0, 1, false), true));
+                result.Add(new Candidate(tpl, (long)handbook, new OfferFinder.Offer("stash", default, default, default, 0, 0, 1), true));
                 continue;
             }
 
-            var cheapest = Offers(ctx, tpl).Where(o => o.Available >= 1).OrderBy(o => o.UnitRub).FirstOrDefault();
+            var cheapest = Offers(ctx, tpl).OrderBy(o => o.UnitRub).FirstOrDefault();
             if (cheapest is not null)
             {
                 result.Add(new Candidate(tpl, (long)handbook, cheapest, false));
@@ -742,7 +737,7 @@ public sealed class Circle(
                 continue;
             }
 
-            var cart = new PlanResponse { FleaUnlocked = ctx.Flea };
+            var cart = new PlanResponse();
             var items = new List<CircleItem>();
             foreach (int i in picked.OrderByDescending(i => frontier[i].Value))
             {

@@ -42,7 +42,7 @@ internal sealed class IconCache
     {
         try
         {
-            var item = Singleton<ItemFactory>.Instance.CreateItem("shoppinglist" + tpl, tpl, null);
+            var item = Singleton<ItemFactory>.Instance.CreateItem("cultistcircle" + tpl, tpl, null);
             return ItemViewFactory.LoadItemIcon(item);
         }
         catch (Exception ex)

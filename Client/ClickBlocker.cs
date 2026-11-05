@@ -34,7 +34,7 @@ internal sealed class ClickBlocker
 
     private void Create()
     {
-        var root = new GameObject("ShoppingListClickBlocker");
+        var root = new GameObject("CultistCircleClickBlocker");
         Object.DontDestroyOnLoad(root);
         var canvas = root.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
