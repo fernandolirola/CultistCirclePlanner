@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace CultistCircle.Client;
 
-[BepInPlugin("com.zezinho.cultistcircleplanner", "zezinho-CultistCirclePlanner", "1.0.2")]
+[BepInPlugin("com.zezinho.cultistcircleplanner", "zezinho-CultistCirclePlanner", "1.0.3")]
 public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log = null!;

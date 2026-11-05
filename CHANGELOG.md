@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3
+
+- Fixed bought items losing their "bought" mark when you closed the window or restarted the game. They now stay marked until the ritual starts.
+- Fixed purchases that went through being marked as failed when the server was slow to answer, which made "Try again" buy a replacement.
+
 ## 1.0.2
 
 - Guard against a missing inventory controller when placing items and a missing circle template when reading grid rules.
